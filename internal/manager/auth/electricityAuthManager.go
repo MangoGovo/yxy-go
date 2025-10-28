@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 	"yxy-go/internal/consts"
 	"yxy-go/internal/svc"
 	"yxy-go/internal/utils/yxyClient"
@@ -23,14 +22,14 @@ type getAuthTokenResp struct {
 	Success    bool   `json:"success"`
 }
 
-type AuthManager struct {
+type ElectricityAuthManager struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewAuthManager(ctx context.Context, svcCtx *svc.ServiceContext) *AuthManager {
-	return &AuthManager{
+func NewElectricityAuthManager(ctx context.Context, svcCtx *svc.ServiceContext) *ElectricityAuthManager {
+	return &ElectricityAuthManager{
 		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
 		svcCtx: svcCtx,
@@ -38,12 +37,12 @@ func NewAuthManager(ctx context.Context, svcCtx *svc.ServiceContext) *AuthManage
 }
 
 // fetchAuthToken 发送请求获取AuthToken
-func (l *AuthManager) fetchAuthToken(uid string) (string, error) {
+func (l *ElectricityAuthManager) fetchAuthToken(uid string) (string, error) {
 	_, yxyHeaders := yxyClient.GetYxyBaseReqParam("")
 	yxyReq := map[string]string{
 		"bindSkip":    "1",
 		"authType":    "2",
-		"ymAppId":     "1810181825222034",
+		"ymAppId":     consts.ELECTRICTY_APPID,
 		"callbackUrl": consts.APPLICATION_URL + "/",
 		"unionid":     uid,
 		"schoolCode":  consts.SCHOOL_CODE,
@@ -98,28 +97,26 @@ func (l *AuthManager) fetchAuthToken(uid string) (string, error) {
 	return shiroJID, nil
 }
 
-const cacheTTL = 24 * time.Hour
-
 // getCacheKey 获取缓存token的key
-func getCacheKey(uid string) string {
+func (l *ElectricityAuthManager) getCacheKey(uid string) string {
 	// TODO(typo) 考虑后续修改为 auth_token:electricity:uid
 	return "elec:auth_token:" + uid
 }
 
 // refreshCachedAuthToken 刷新缓存中的AuthToken
-func (l *AuthManager) refreshCachedAuthToken(uid string) (string, error) {
+func (l *ElectricityAuthManager) refreshCachedAuthToken(uid string) (string, error) {
 	token, err := l.fetchAuthToken(uid)
 	if err != nil {
 		return "", err
 	}
-	key := getCacheKey(uid)
+	key := l.getCacheKey(uid)
 	l.svcCtx.Rdb.Set(l.ctx, key, token, cacheTTL)
 	return token, nil
 }
 
 // getCachedAuthToken 获取authToken, 优先从缓存中获取
-func (l *AuthManager) getCachedAuthToken(uid string) (string, error) {
-	key := getCacheKey(uid)
+func (l *ElectricityAuthManager) getCachedAuthToken(uid string) (string, error) {
+	key := l.getCacheKey(uid)
 	token, err := l.svcCtx.Rdb.Get(l.ctx, key).Result()
 	if err == nil {
 		return token, nil
@@ -128,13 +125,12 @@ func (l *AuthManager) getCachedAuthToken(uid string) (string, error) {
 	if errors.Is(err, redis.Nil) {
 		return l.refreshCachedAuthToken(uid)
 	} else {
-		return "", xerr.WithCode(xerr.ErrUnknown, err.Error())
+		return "", errors.New("获取缓存Token失败, redis异常")
 	}
 }
 
 // WithAuthToken 包装需要使用token的业务函数, 只需要将其作为回调传入, 以下处理函数会自动处理token的获取和缓存, 并将token注入业务函数
-// TODO(feature) 加一个appid的参数, 实现不同业务(校车, 电费)的token管理
-func (l *AuthManager) WithAuthToken(uid string, fn func(token string) (any, error)) (any, error) {
+func (l *ElectricityAuthManager) WithAuthToken(uid string, fn func(token string) (any, error)) (any, error) {
 	// 1. 从缓存获取 token
 	token, err := l.getCachedAuthToken(uid)
 	if err != nil {
@@ -151,7 +147,7 @@ func (l *AuthManager) WithAuthToken(uid string, fn func(token string) (any, erro
 	// 3. token 失效
 	l.Logger.Errorf("token: %s 失效, 刷新token", token)
 	if token, err = l.refreshCachedAuthToken(uid); err != nil {
-		return nil, xerr.WithCode(xerr.ErrUnknown, err.Error())
+		return nil, err
 	}
 
 	return fn(token)
