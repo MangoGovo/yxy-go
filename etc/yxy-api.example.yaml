@@ -3,33 +3,33 @@ Host: 0.0.0.0
 Port: 8888
 
 Middlewares:
-  Log: false
+    Log: false
 
 Log:
-  # 服务名称
-  ServiceName: yxy-api
-  # 日志打印模式 console file
-  Mode: console
-  # 日志格式 json plain
-  Encoding: json
-  # 日志输出路径, Mode 为 file 时生效
-  Path: ./log
-  # 日志输出级别 debug info error severe
-  Level: info
-  # 是否压缩日志
-  Compress: false
-  # 是否开启 stat 日志
-  Stat: false
-  # 日志保留天数, Mode 为 file 时生效
-  KeepDays: 7
-  # 堆栈打印冷却时间
-  StackCooldownMillis: 100
-  # 最多文件保留个数, Mode 为 file 且 Rotation 为 size 时生效, 0 表示无限制
-  MaxBackups: 0
-  # 最大文件大小, Mode 为 file 且 Rotation 为 size 时生效, 0 表示无限制
-  MaxSize: 0
-  # 文件分割模式 daily size
-  Rotation: daily
+    # 服务名称
+    ServiceName: yxy-api
+    # 日志打印模式 console file
+    Mode: console
+    # 日志格式 json plain
+    Encoding: json
+    # 日志输出路径, Mode 为 file 时生效
+    Path: ./log
+    # 日志输出级别 debug info error severe
+    Level: info
+    # 是否压缩日志
+    Compress: false
+    # 是否开启 stat 日志
+    Stat: false
+    # 日志保留天数, Mode 为 file 时生效
+    KeepDays: 7
+    # 堆栈打印冷却时间
+    StackCooldownMillis: 100
+    # 最多文件保留个数, Mode 为 file 且 Rotation 为 size 时生效, 0 表示无限制
+    MaxBackups: 0
+    # 最大文件大小, Mode 为 file 且 Rotation 为 size 时生效, 0 表示无限制
+    MaxSize: 0
+    # 文件分割模式 daily size
+    Rotation: daily
 
 # 是否开启定时任务 (低电量提醒), 关闭时无需填写下方配置
 EnableCron: true
@@ -38,32 +38,37 @@ EnableCron: true
 CronTime: 0 9 * * *
 
 Mysql:
-  Host: 127.0.0.1
-  Port: 3306
-  User: root
-  Pass: "123456"
-  DBName: db_name
+    Host: 127.0.0.1
+    Port: 3306
+    User: root
+    Pass: "123456"
+    DBName: db_name
 
 Redis:
-  Host: 127.0.0.1
-  Port: 6379
-  Pass: "123456"
-  DB: 0
+    Host: 127.0.0.1
+    Port: 6379
+    Pass: "123456"
+    DB: 0
 
 MiniProgram:
-  AppID: app_id
-  Secret: secret
-  # 是否开启打印SDK调用微信API接口时的日志
-  HttpDebug: false
-  # 日志等级 info error
-  LogLevel: info
-  # info日志文件路径
-  LogInfoFile: ./log/wechat/info.log
-  # error日志文件路径
-  LogErrorFile: ./log/wechat/error.log
-  # 是否打印在终端
-  LogStdout: false
-  # 跳转小程序类型 developer(开发版) trial(体验版) formal(正式版)
-  State: formal
-  # 低电量提醒订阅消息模板ID
-  TemplateID: template_id
+    AppID: app_id
+    Secret: secret
+    # 是否开启打印SDK调用微信API接口时的日志
+    HttpDebug: false
+    # 日志等级 info error
+    LogLevel: info
+    # info日志文件路径
+    LogInfoFile: ./log/wechat/info.log
+    # error日志文件路径
+    LogErrorFile: ./log/wechat/error.log
+    # 是否打印在终端
+    LogStdout: false
+    # 跳转小程序类型 developer(开发版) trial(体验版) formal(正式版)
+    State: formal
+    # 低电量提醒订阅消息模板ID
+    TemplateID: template_id
+
+BusService:
+    UID: "1234567890"
+    MaxRetries: 5
+    CronTime: "*/1 * * * *"

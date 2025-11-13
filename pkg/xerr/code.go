@@ -39,3 +39,8 @@ const (
 	ErrElectricityBindNotFound                            // 未找到电费绑定信息
 	ErrRoomInfoWrongOrCampusMismatch                      // 房间信息有误或校区不匹配
 )
+
+// bus err
+const (
+	ErrBusTokenInvalid Code = iota + 110201 // 校车Token无效
+)

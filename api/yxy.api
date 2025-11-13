@@ -11,6 +11,7 @@ import (
 	"./yxy/login.api"
 	"./yxy/card.api"
 	"./yxy/electricity.api"
+	"./yxy/bus.api"
 )
 
 // 登录接口
@@ -63,5 +64,27 @@ service yxy-api {
 
 	@handler getElectricityUsageRecords
 	get /usage-records (GetElectricityUsageRecordsReq) returns (GetElectricityUsageRecordsResp)
+}
+
+// 校车接口
+@server (
+	prefix: /api/v1/bus
+	group:  bus
+)
+service yxy-api {
+	@handler getBusAuth
+	get /auth (GetBusAuthReq) returns (GetBusAuthResp)
+
+	@handler getBusInfo
+	get /info (GetBusInfoReq) returns (GetBusInfoResp)
+
+	@handler getBusRecord
+	get /record (GetBusRecordReq) returns (GetBusRecordResp)
+
+	@handler getBusMessage
+	get /message (GetBusMessageReq) returns (GetBusMessageResp)
+
+	@handler getBusQrcode
+	get /qrcode (GetBusQrcodeReq) returns (GetBusQrcodeResp)
 }
 

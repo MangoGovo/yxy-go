@@ -26,6 +26,7 @@ func _() {
 	_ = x[ErrElectricityTokenInvalid-110101]
 	_ = x[ErrElectricityBindNotFound-110102]
 	_ = x[ErrRoomInfoWrongOrCampusMismatch-110103]
+	_ = x[ErrBusTokenInvalid-110201]
 }
 
 const (
@@ -34,6 +35,7 @@ const (
 	_Code_name_2 = "用户不存在账号被登出用户还未绑卡"
 	_Code_name_3 = "Token无效图片验证码已失效图片验证码错误deviceId不一致手机号格式错误短信发送超限手机验证码错误, 错误3次将锁定15分钟手机验证码错误3次, 账号锁定15分钟"
 	_Code_name_4 = "电费Token无效未找到电费绑定信息房间信息有误或校区不匹配"
+	_Code_name_5 = "校车Token无效"
 )
 
 var (
@@ -59,6 +61,8 @@ func (i Code) String() string {
 	case 110101 <= i && i <= 110103:
 		i -= 110101
 		return _Code_name_4[_Code_index_4[i]:_Code_index_4[i+1]]
+	case i == 110201:
+		return _Code_name_5
 	default:
 		return "Code(" + strconv.FormatInt(int64(i), 10) + ")"
 	}

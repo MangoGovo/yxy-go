@@ -1,0 +1,95 @@
+syntax = "v1"
+
+info (
+	title:   "易校园校车接口"
+	author:  "Zerohzzzz"
+	date:    "2025 年 2 月 18 日"
+	version: "v1"
+)
+
+type (
+	GetBusAuthReq {
+		UID string `form:"uid"`
+	}
+	GetBusAuthResp {
+		Token string `json:"token"`
+	}
+)
+
+type (
+	BusStation {
+		ID   string `json:"id"`
+		Name string `json:"station_name"`
+		Seq  int    `json:"station_seq"`
+	}
+	BusTime {
+		ID            string `json:"id"`
+		DepartureTime string `json:"departure_time"`
+		RemainSeats   int    `json:"remain_seats"`
+		OrderedSeats  int    `json:"ordered_seats"`
+	}
+	BusInfo {
+		ID       string       `json:"id"`
+		Name     string       `json:"name"`
+		Price    int          `json:"price"`
+		Stations []BusStation `json:"stations"`
+		BusTime  []BusTime    `json:"bus_time"`
+	}
+	GetBusInfoReq {
+		Page     int    `form:"page"`
+		PageSize int    `form:"page_size"`
+		Search   string `form:"search,optional"`
+	}
+	GetBusInfoResp {
+		List []BusInfo `json:"list"`
+	}
+)
+
+type (
+	BusRecord {
+		ID            string `json:"id"`
+		Name          string `json:"name"`
+		PayTime       string `json:"pay_time"`
+		DepartureTime string `json:"departure_time"`
+	}
+	GetBusRecordReq {
+		Token    string `form:"token"`
+		Status   string `form:"status,options=-10|0|10|20|30"`
+		Page     int    `form:"page"`
+		PageSize int    `form:"page_size"`
+	}
+	GetBusRecordResp {
+		List []BusRecord `json:"list"`
+	}
+)
+
+type (
+	Message {
+		ID      string `json:"id"`
+		MsgType string `json:"msg_type"`
+		MsgID   string `json:"msg_id"`
+		Title   string `json:"title"`
+		IsRead  int    `json:"is_read"`
+		Content string `json:"content"`
+		HTML    string `json:"html"`
+		Img     string `json:"img"`
+		Author  string `json:"author"`
+	}
+	GetBusMessageReq {
+		Token    string `form:"token"`
+		Page     int    `form:"page"`
+		PageSize int    `form:"page_size"`
+	}
+	GetBusMessageResp {
+		List []Message `json:"list"`
+	}
+)
+
+type (
+	GetBusQrcodeReq {
+		Token string `form:"token"`
+	}
+	GetBusQrcodeResp {
+		Qrcode string `json:"qrcode"`
+	}
+)

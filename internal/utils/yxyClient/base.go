@@ -37,3 +37,10 @@ func GetYxyBaseReqParam(deviceID string) (baseReq map[string]interface{}, baseHe
 	}
 	return baseReq, baseHeaders
 }
+
+type YxyBusErrorResp struct {
+	Detail struct {
+		Code string `json:"code"`
+		Msg  string `json:"msg"`
+	} `json:"detail"`
+}

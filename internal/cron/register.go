@@ -30,4 +30,14 @@ func (c *CronJob) Register() {
 	if err != nil {
 		panic(err)
 	}
+
+	_, err = c.svcCtx.Cron.AddFunc(c.svcCtx.Config.BusService.CronTime, func() {
+		l := NewUpdateBusInfoLogic(c.ctx, c.svcCtx)
+		l.Logger.Info("Start updating bus info")
+		l.UpdateBusInfoLogic()
+		l.Logger.Info("Finish updating bus info")
+	})
+	if err != nil {
+		panic(err)
+	}
 }

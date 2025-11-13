@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	bus "yxy-go/internal/handler/bus"
 	card "yxy-go/internal/handler/card"
 	electricity "yxy-go/internal/handler/electricity"
 	login "yxy-go/internal/handler/login"
@@ -16,6 +17,37 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/auth",
+				Handler: bus.GetBusAuthHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/info",
+				Handler: bus.GetBusInfoHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/message",
+				Handler: bus.GetBusMessageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/qrcode",
+				Handler: bus.GetBusQrcodeHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/record",
+				Handler: bus.GetBusRecordHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1/bus"),
+	)
+
 	server.AddRoutes(
 		[]rest.Route{
 			{

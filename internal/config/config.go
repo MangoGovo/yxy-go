@@ -32,4 +32,9 @@ type Config struct {
 		State        string
 		TemplateID   string
 	}
+	BusService struct {
+		UID        string
+		MaxRetries int
+		CronTime   string
+	}
 }

@@ -3,6 +3,34 @@
 
 package types
 
+type BusInfo struct {
+	ID       string       `json:"id"`
+	Name     string       `json:"name"`
+	Price    int          `json:"price"`
+	Stations []BusStation `json:"stations"`
+	BusTime  []BusTime    `json:"bus_time"`
+}
+
+type BusRecord struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	PayTime       string `json:"pay_time"`
+	DepartureTime string `json:"departure_time"`
+}
+
+type BusStation struct {
+	ID   string `json:"id"`
+	Name string `json:"station_name"`
+	Seq  int    `json:"station_seq"`
+}
+
+type BusTime struct {
+	ID            string `json:"id"`
+	DepartureTime string `json:"departure_time"`
+	RemainSeats   int    `json:"remain_seats"`
+	OrderedSeats  int    `json:"ordered_seats"`
+}
+
 type CardConsumptionRecord struct {
 	Address string `json:"address"`
 	Money   string `json:"money"`
@@ -17,6 +45,53 @@ type ElectricityRechargeRecord struct {
 type ElectricityUsageRecord struct {
 	Usage    string `json:"usage"`
 	Datetime string `json:"datetime"`
+}
+
+type GetBusAuthReq struct {
+	UID string `form:"uid"`
+}
+
+type GetBusAuthResp struct {
+	Token string `json:"token"`
+}
+
+type GetBusInfoReq struct {
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
+	Search   string `form:"search,optional"`
+}
+
+type GetBusInfoResp struct {
+	List []BusInfo `json:"list"`
+}
+
+type GetBusMessageReq struct {
+	Token    string `form:"token"`
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
+}
+
+type GetBusMessageResp struct {
+	List []Message `json:"list"`
+}
+
+type GetBusQrcodeReq struct {
+	Token string `form:"token"`
+}
+
+type GetBusQrcodeResp struct {
+	Qrcode string `json:"qrcode"`
+}
+
+type GetBusRecordReq struct {
+	Token    string `form:"token"`
+	Status   string `form:"status,options=-10|0|10|20|30"`
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
+}
+
+type GetBusRecordResp struct {
+	List []BusRecord `json:"list"`
 }
 
 type GetCaptchaImageReq struct {
@@ -111,6 +186,18 @@ type LoginBySilentReq struct {
 
 type LoginBySilentResp struct {
 	Token string `json:"token"`
+}
+
+type Message struct {
+	ID      string `json:"id"`
+	MsgType string `json:"msg_type"`
+	MsgID   string `json:"msg_id"`
+	Title   string `json:"title"`
+	IsRead  int    `json:"is_read"`
+	Content string `json:"content"`
+	HTML    string `json:"html"`
+	Img     string `json:"img"`
+	Author  string `json:"author"`
 }
 
 type SendCodeReq struct {
