@@ -2,41 +2,44 @@ package cron
 
 import (
 	"context"
-	"time"
 	"yxy-go/internal/svc"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type CronJob struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
+	logx.Logger
 }
 
 func NewCronJob(ctx context.Context, svcCtx *svc.ServiceContext) *CronJob {
 	return &CronJob{
 		ctx:    ctx,
 		svcCtx: svcCtx,
+		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (c *CronJob) Register() {
+func (c *CronJob) MustRegister() {
 	_, err := c.svcCtx.Cron.AddFunc(c.svcCtx.Config.CronTime, func() {
 		l := NewSendLowBatteryAlertLogic(c.ctx, c.svcCtx)
-		l.Logger.Info("---------------------------------------- " + time.Now().Format("2006-01-02 15:04:05") + " ----------------------------------------")
-		l.Logger.Info("Start sending low battery alert")
+		l.Logger.Info("开始发送低电量提醒")
 		l.SendLowBatteryAlertLogic()
-		l.Logger.Info("Finish sending low battery alert")
-		l.Logger.Info("-----------------------------------------------------------------------------------------------------")
+		l.Logger.Info("开始发送低电量提醒")
 	})
 	if err != nil {
 		panic(err)
 	}
 
+	c.Logger.Info("低电量提醒定时任务注册成功")
 	_, err = c.svcCtx.Cron.AddFunc(c.svcCtx.Config.BusService.CronTime, func() {
 		l := NewUpdateBusInfoLogic(c.ctx, c.svcCtx)
-		l.Logger.Info("Start updating bus info")
+		l.Logger.Info("开始获取校车信息")
 		l.UpdateBusInfoLogic()
-		l.Logger.Info("Finish updating bus info")
+		l.Logger.Info("结束获取校车信息")
 	})
+	c.Logger.Info("低电量提醒定时任务注册成功")
 	if err != nil {
 		panic(err)
 	}
