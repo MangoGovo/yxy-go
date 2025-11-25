@@ -39,11 +39,11 @@ func (l *GetBusInfoLogic) GetBusInfo(req *types.GetBusInfoReq) (resp *types.GetB
 		return nil, err
 	}
 
-	var filteredBusInfoList []types.BusInfo
-	for _, businfo := range busInfoList {
-		if strings.Contains(businfo, req.Search) {
+	filteredBusInfoList := make([]types.BusInfo, 0)
+	for _, busInfo := range busInfoList {
+		if strings.Contains(busInfo, req.Search) {
 			var tmp types.BusInfo
-			err := json.Unmarshal([]byte(businfo), &tmp)
+			err := json.Unmarshal([]byte(busInfo), &tmp)
 			if err != nil {
 				l.Errorf("failed to unmarshal bus info: %v", err)
 				continue
