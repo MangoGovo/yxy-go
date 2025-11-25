@@ -3,8 +3,9 @@ package bus
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
-
+	"time"
 	"yxy-go/internal/svc"
 	"yxy-go/internal/types"
 
@@ -29,12 +30,15 @@ func (l *GetBusInfoLogic) GetBusInfo(req *types.GetBusInfoReq) (resp *types.GetB
 	start := (req.Page - 1) * req.PageSize
 	end := start + req.PageSize - 1
 
-	busInfoListData := l.svcCtx.Rdb.LRange(l.ctx, "BusInfo", int64(start), int64(end))
-	if busInfoListData.Err() != nil {
-		return nil, busInfoListData.Err()
+	busInfoList, err := l.svcCtx.Rdb.LRange(l.ctx, "BusInfo", int64(start), int64(end)).Result()
+	if err != nil {
+		return nil, err
 	}
-
-	busInfoList, err := busInfoListData.Result()
+	updatedAtStr, err := l.svcCtx.Rdb.Get(l.ctx, "bus:info:updated_at").Result()
+	if err != nil {
+		return nil, err
+	}
+	updatedAt, err := strconv.ParseInt(updatedAtStr, 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +57,7 @@ func (l *GetBusInfoLogic) GetBusInfo(req *types.GetBusInfoReq) (resp *types.GetB
 	}
 
 	return &types.GetBusInfoResp{
-		List: filteredBusInfoList,
+		UpdatedAt: time.UnixMilli(updatedAt).Format("2006-01-02 15:04:05"),
+		List:      filteredBusInfoList,
 	}, nil
 }

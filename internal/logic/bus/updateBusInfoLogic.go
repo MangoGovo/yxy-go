@@ -13,6 +13,7 @@ import (
 	"yxy-go/internal/utils/yxyClient"
 	"yxy-go/pkg/xerr"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -67,26 +68,36 @@ func NewUpdateBusInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upd
 func (l *UpdateBusInfoLogic) UpdateBusInfoLogic() {
 	maxRetries := l.svcCtx.Config.BusService.MaxRetries
 	uid := l.svcCtx.Config.BusService.UID
-	for retries := 0; retries < maxRetries; retries++ {
-		_, err := l.authManager.WithAuthToken(uid, func(token string) (any, error) {
-			return nil, l.updateBusInfo(token)
+	retries := 0
+	var busData []*types.BusInfo
+	for ; retries < maxRetries; retries++ {
+		resp, err := l.authManager.WithAuthToken(uid, func(token string) (any, error) {
+			return l.FetchBusInfo(token)
 		})
-		if err == nil {
+		_busData, ok := resp.([]*types.BusInfo)
+		if err == nil && ok {
 			l.Logger.Info("成功获取校车信息")
-			return
+			busData = _busData
+			break
 		}
 		l.Logger.Errorf("获取校车信息失败, 重试中... (重试次数 %d/%d): %v", retries+1, maxRetries, err)
 		time.Sleep(time.Second * 5)
 	}
-	l.Logger.Errorf("获取校车信息失败! (总重试次数: %s)", maxRetries)
+	if retries == maxRetries {
+		l.Logger.Errorf("获取校车信息失败! (总重试次数: %s)", maxRetries)
+		return
+	}
+	if err := l.refreshCache(busData); err != nil {
+		l.Logger.Errorf("刷新校车信息缓存失败: %v", err)
+	}
 }
 
-func (l *UpdateBusInfoLogic) updateBusInfo(token string) error {
-	var busData []types.BusInfo
-	busInfoList, err := l.FetchBusInfo(token)
+func (l *UpdateBusInfoLogic) FetchBusInfo(token string) ([]*types.BusInfo, error) {
+	var busData []*types.BusInfo
+	busInfoList, err := l.fetchBusBaseInfo(token)
 	if err != nil {
 		l.Logger.Errorf("获取校车信息失败, http 请求失败")
-		return err
+		return nil, err
 	}
 	for _, busInfo := range busInfoList.Results {
 		var tmp types.BusInfo
@@ -104,7 +115,7 @@ func (l *UpdateBusInfoLogic) updateBusInfo(token string) error {
 		busTimeResp, err := l.fetchBusTime(token, busInfo.ID)
 		if err != nil {
 			l.Logger.Errorf("获取校车时间失败, %v", err)
-			return err
+			return nil, err
 		}
 		for _, busTime := range busTimeResp {
 			busDataResp, err := l.fetchBusDate(token, busInfo.ID, busTime.ID)
@@ -127,32 +138,48 @@ func (l *UpdateBusInfoLogic) updateBusInfo(token string) error {
 				})
 			}
 		}
-		busData = append(busData, tmp)
+		busData = append(busData, &tmp)
 	}
+	return busData, nil
+}
 
-	err = l.svcCtx.Rdb.Del(l.ctx, "BusInfo").Err()
-	if err != nil {
-		l.Logger.Errorf("Delete bus info failed: %v", err)
-		return err
-	}
-
+// refreshCache 刷新缓存, 采用RPush临时key再Rename的方式保证原子性
+func (l *UpdateBusInfoLogic) refreshCache(busData []*types.BusInfo) error {
+	cacheKey := "bus:info:data"
+	cacheUpdatedAtKey := "bus:info:updated_at"
+	tempCacheKey := "bus:info:temp_data"
+	var pushData []interface{}
 	for _, bus := range busData {
 		data, err := jsonx.Marshal(bus)
 		if err != nil {
-			l.Logger.Errorf("Marshal bus info failed: %v", err)
+			l.Logger.Errorf("校车信息反序列化失败: %v", err)
 			return err
 		}
-		err = l.svcCtx.Rdb.RPush(l.ctx, "BusInfo", data).Err()
-		if err != nil {
-			l.Logger.Errorf("Push bus info failed: %v", err)
-			return err
-		}
+		pushData = append(pushData, data)
 	}
-
+	if len(pushData) == 0 {
+		return xerr.WithCode(xerr.ErrUnknown, "校车信息为空，未更新缓存")
+	}
+	_, err := l.svcCtx.Rdb.Pipelined(l.ctx, func(pipe redis.Pipeliner) error {
+		pipe.RPush(l.ctx, tempCacheKey, pushData...)
+		pipe.Expire(l.ctx, tempCacheKey, time.Second*60)
+		return nil
+	})
+	if err != nil {
+		l.Logger.Errorf("更新校车信息缓存失败: %v", err)
+		return err
+	}
+	if err = l.svcCtx.Rdb.Rename(l.ctx, tempCacheKey, cacheKey).Err(); err != nil {
+		l.Logger.Errorf("更新校车信息缓存失败: %v", err)
+		l.svcCtx.Rdb.Del(l.ctx, tempCacheKey)
+		return err
+	}
+	l.svcCtx.Rdb.Set(l.ctx, cacheUpdatedAtKey, time.Now().UnixMilli(), 0)
+	l.svcCtx.Rdb.Persist(l.ctx, cacheKey)
 	return nil
 }
 
-func (l *UpdateBusInfoLogic) FetchBusInfo(token string) (*GetBusInfoYxyResp, error) {
+func (l *UpdateBusInfoLogic) fetchBusBaseInfo(token string) (*GetBusInfoYxyResp, error) {
 	var yxyResp GetBusInfoYxyResp
 
 	client := yxyClient.GetClient()
