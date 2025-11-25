@@ -25,7 +25,7 @@ func main() {
 	cronJob := cron.NewCronJob(context.Background(), ctx)
 	cronJob.MustRegister()
 
-	logx.Info("启动日志服务")
+	logx.Info("启动定时服务")
 	ctx.Cron.Start()
 	defer ctx.Cron.Stop()
 

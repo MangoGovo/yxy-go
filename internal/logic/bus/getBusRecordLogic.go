@@ -78,7 +78,7 @@ func fetchBusRecord(token string, page int, pageSize int, status string) (yxyRes
 		SetQueryParams(map[string]string{
 			"page":      strconv.Itoa(page),
 			"page_size": strconv.Itoa(pageSize),
-			"status":    "30",
+			"status":    status,
 		}).
 		SetHeader("Authorization", token).
 		SetResult(&yxyResp).
