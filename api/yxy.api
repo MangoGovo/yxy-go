@@ -72,19 +72,13 @@ service yxy-api {
 	group:  bus
 )
 service yxy-api {
-	@handler getBusAuth
-	get /auth (GetBusAuthReq) returns (GetBusAuthResp)
-
 	@handler getBusInfo
 	get /info (GetBusInfoReq) returns (GetBusInfoResp)
 
 	@handler getBusRecord
 	get /record (GetBusRecordReq) returns (GetBusRecordResp)
 
-	@handler getBusMessage
-	get /message (GetBusMessageReq) returns (GetBusMessageResp)
-
-	@handler getBusQrcode
-	get /qrcode (GetBusQrcodeReq) returns (GetBusQrcodeResp)
+	@handler getBusReservation
+	get /reservation (GetBusReservationReq) returns (GetBusReservationResp)
 }
 

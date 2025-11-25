@@ -47,14 +47,6 @@ type ElectricityUsageRecord struct {
 	Datetime string `json:"datetime"`
 }
 
-type GetBusAuthReq struct {
-	UID string `form:"uid"`
-}
-
-type GetBusAuthResp struct {
-	Token string `json:"token"`
-}
-
 type GetBusInfoReq struct {
 	Page     int    `form:"page"`
 	PageSize int    `form:"page_size"`
@@ -65,32 +57,23 @@ type GetBusInfoResp struct {
 	List []BusInfo `json:"list"`
 }
 
-type GetBusMessageReq struct {
-	Token    string `form:"token"`
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
-}
-
-type GetBusMessageResp struct {
-	List []Message `json:"list"`
-}
-
-type GetBusQrcodeReq struct {
-	Token string `form:"token"`
-}
-
-type GetBusQrcodeResp struct {
-	Qrcode string `json:"qrcode"`
-}
-
 type GetBusRecordReq struct {
-	Token    string `form:"token"`
-	Status   string `form:"status,options=-10|0|10|20|30"`
+	Uid      string `form:"uid"`
 	Page     int    `form:"page"`
 	PageSize int    `form:"page_size"`
 }
 
 type GetBusRecordResp struct {
+	List []BusRecord `json:"list"`
+}
+
+type GetBusReservationReq struct {
+	Uid      string `form:"uid"`
+	Page     int    `form:"page"`
+	PageSize int    `form:"page_size"`
+}
+
+type GetBusReservationResp struct {
 	List []BusRecord `json:"list"`
 }
 
@@ -186,18 +169,6 @@ type LoginBySilentReq struct {
 
 type LoginBySilentResp struct {
 	Token string `json:"token"`
-}
-
-type Message struct {
-	ID      string `json:"id"`
-	MsgType string `json:"msg_type"`
-	MsgID   string `json:"msg_id"`
-	Title   string `json:"title"`
-	IsRead  int    `json:"is_read"`
-	Content string `json:"content"`
-	HTML    string `json:"html"`
-	Img     string `json:"img"`
-	Author  string `json:"author"`
 }
 
 type SendCodeReq struct {

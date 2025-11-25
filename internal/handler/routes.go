@@ -21,28 +21,18 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/auth",
-				Handler: bus.GetBusAuthHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
 				Path:    "/info",
 				Handler: bus.GetBusInfoHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/message",
-				Handler: bus.GetBusMessageHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/qrcode",
-				Handler: bus.GetBusQrcodeHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
 				Path:    "/record",
 				Handler: bus.GetBusRecordHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/reservation",
+				Handler: bus.GetBusReservationHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/api/v1/bus"),

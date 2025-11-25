@@ -6,16 +6,7 @@ info (
 	date:    "2025 年 2 月 18 日"
 	version: "v1"
 )
-
-type (
-	GetBusAuthReq {
-		UID string `form:"uid"`
-	}
-	GetBusAuthResp {
-		Token string `json:"token"`
-	}
-)
-
+// 校车信息
 type (
 	BusStation {
 		ID   string `json:"id"`
@@ -45,6 +36,7 @@ type (
 	}
 )
 
+// 乘车记录
 type (
 	BusRecord {
 		ID            string `json:"id"`
@@ -53,8 +45,7 @@ type (
 		DepartureTime string `json:"departure_time"`
 	}
 	GetBusRecordReq {
-		Token    string `form:"token"`
-		Status   string `form:"status,options=-10|0|10|20|30"`
+		Uid    string `form:"uid"`
 		Page     int    `form:"page"`
 		PageSize int    `form:"page_size"`
 	}
@@ -63,33 +54,15 @@ type (
 	}
 )
 
+// 已约车票
 type (
-	Message {
-		ID      string `json:"id"`
-		MsgType string `json:"msg_type"`
-		MsgID   string `json:"msg_id"`
-		Title   string `json:"title"`
-		IsRead  int    `json:"is_read"`
-		Content string `json:"content"`
-		HTML    string `json:"html"`
-		Img     string `json:"img"`
-		Author  string `json:"author"`
-	}
-	GetBusMessageReq {
-		Token    string `form:"token"`
-		Page     int    `form:"page"`
-		PageSize int    `form:"page_size"`
-	}
-	GetBusMessageResp {
-		List []Message `json:"list"`
-	}
-)
+    GetBusReservationReq{
+        Uid    string `form:"uid"`
+        Page     int    `form:"page"`
+        PageSize int    `form:"page_size"`
+    }
 
-type (
-	GetBusQrcodeReq {
-		Token string `form:"token"`
-	}
-	GetBusQrcodeResp {
-		Qrcode string `json:"qrcode"`
-	}
+    GetBusReservationResp {
+        List []BusRecord `json:"list"`
+    }
 )
