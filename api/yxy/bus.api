@@ -32,7 +32,8 @@ type (
 		Search   string `form:"search,optional"`
 	}
 	GetBusInfoResp {
-		List []BusInfo `json:"list"`
+        UpdatedAt string `json:"updated_at"`
+		List []BusInfo   `json:"list"`
 	}
 )
 

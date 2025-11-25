@@ -54,7 +54,8 @@ type GetBusInfoReq struct {
 }
 
 type GetBusInfoResp struct {
-	List []BusInfo `json:"list"`
+	UpdatedAt string    `json:"updated_at"`
+	List      []BusInfo `json:"list"`
 }
 
 type GetBusRecordReq struct {
