@@ -3,8 +3,8 @@ package auth
 import "time"
 
 type AuthManager interface {
-	// fetchAuthToken 发送请求获取AuthToken
-	fetchAuthToken(uid string) (string, error)
+	// FetchAuthToken 发送请求获取AuthToken
+	FetchAuthToken(uid string) (string, error)
 
 	// getCacheKey 获取缓存token的key
 	getCacheKey(uid string) string

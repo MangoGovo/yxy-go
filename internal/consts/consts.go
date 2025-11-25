@@ -39,15 +39,6 @@ const (
 	GET_ELECTRICITY_MGS_RECHARGE_RECORDS_URL  = APPLICATION_URL + "/app/electric/roomBuyRecord"
 	GET_ELECTRICITY_ZHPF_USAGE_RECORDS_URL    = APPLICATION_URL + "/app/electric/getISIMSRecords"
 	GET_ELECTRICITY_MGS_USAGE_RECORDS_URL     = APPLICATION_URL + "/app/electric/queryUsageRecord"
-	GET_ELECTRICITY_AUTH_CODE_URL             = AUTH_URL + "/authoriz/getCodeV2"
-	GET_ELECTRICITY_AUTH_TOKEN_URL            = ELECTRICITY_URL + "/app/login/getUser4Authorize"
-	QUERY_ELECTRICITY_BIND_URL                = ELECTRICITY_URL + "/app/electric/queryBind"
-	GET_ELECTRICITY_ZHPF_SURPLUS_URL          = ELECTRICITY_URL + "/app/electric/queryISIMSRoomSurplus"
-	GET_ELECTRICITY_MGS_SURPLUS_URL           = ELECTRICITY_URL + "/app/electric/queryRoomSurplus"
-	GET_ELECTRICITY_ZHPF_RECHARGE_RECORDS_URL = ELECTRICITY_URL + "/app/electric/queryISIMSRoomBuyRecord"
-	GET_ELECTRICITY_MGS_RECHARGE_RECORDS_URL  = ELECTRICITY_URL + "/app/electric/roomBuyRecord"
-	GET_ELECTRICITY_ZHPF_USAGE_RECORDS_URL    = ELECTRICITY_URL + "/app/electric/getISIMSRecords"
-	GET_ELECTRICITY_MGS_USAGE_RECORDS_URL     = ELECTRICITY_URL + "/app/electric/queryUsageRecord"
 )
 
 const (
@@ -61,4 +52,9 @@ const (
 	GET_BUS_QRCODE_URL     = BUS_URL + "/api/v3/pos/staff_qrcode/"
 	GET_BUS_MESSAGE_URL    = BUS_URL + "/api/v1/staff/messages/"
 	// GET_BUS_MESSAGE_UNREAD_COUNT_URL = BUS_URL + "/api/v1/staff/messages/unread_count/"
+)
+
+const (
+	ELECTRICTY_APPID = "1810181825222034"
+	BUS_APPID        = "2011112043190345310"
 )

@@ -18,7 +18,7 @@ type GetElectricitySurplusLogic struct {
 	logx.Logger
 	ctx        context.Context
 	svcCtx     *svc.ServiceContext
-	authManger *auth.AuthManager
+	authManger *auth.ElectricityAuthManager
 }
 
 func NewGetElectricitySurplusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetElectricitySurplusLogic {
@@ -26,7 +26,7 @@ func NewGetElectricitySurplusLogic(ctx context.Context, svcCtx *svc.ServiceConte
 		Logger:     logx.WithContext(ctx),
 		ctx:        ctx,
 		svcCtx:     svcCtx,
-		authManger: auth.NewAuthManager(ctx, svcCtx),
+		authManger: auth.NewElectricityAuthManager(ctx, svcCtx),
 	}
 }
 

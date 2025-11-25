@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"yxy-go/internal/manager/auth"
 
 	"yxy-go/internal/consts"
 	"yxy-go/internal/svc"
@@ -16,15 +17,17 @@ import (
 
 type GetBusRecordLogic struct {
 	logx.Logger
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
+	ctx         context.Context
+	svcCtx      *svc.ServiceContext
+	authManager *auth.BusAuthManager
 }
 
 func NewGetBusRecordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetBusRecordLogic {
 	return &GetBusRecordLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		Logger:      logx.WithContext(ctx),
+		ctx:         ctx,
+		svcCtx:      svcCtx,
+		authManager: auth.NewBusAuthManager(ctx, svcCtx),
 	}
 }
 
@@ -41,32 +44,17 @@ type GetBusRecordYxyResp struct {
 	} `json:"results"`
 }
 
-func (l *GetBusRecordLogic) GetBusRecord(req *types.GetBusRecordReq) (resp *types.GetBusRecordResp, err error) {
-	var yxyResp GetBusRecordYxyResp
-	var errResp yxyClient.YxyBusErrorResp
-	client := yxyClient.GetClient()
-	r, err := client.R().
-		SetQueryParams(map[string]string{
-			"page":      strconv.Itoa(req.Page),
-			"page_size": strconv.Itoa(req.PageSize),
-			"status":    req.Status,
-		}).
-		SetHeader("Authorization", req.Token).
-		SetResult(&yxyResp).
-		SetError(&errResp).
-		Get(consts.GET_BUS_RECORD_URL)
+func (l *GetBusRecordLogic) GetBusRecord(req *types.GetBusRecordReq) (*types.GetBusRecordResp, error) {
+	resp, err := l.authManager.WithAuthToken(req.Uid, func(token string) (any, error) {
+		return fetchBusRecord(token, req.Page, req.PageSize, "30")
+	})
 	if err != nil {
-		return nil, xerr.WithCode(xerr.ErrHttpClient, err.Error())
+		return nil, err
 	}
-
-	if r.StatusCode() != 200 {
-		errCode := xerr.ErrUnknown
-		if errResp.Detail.Code == "AUTH_FAIL" {
-			errCode = xerr.ErrBusTokenInvalid
-		}
-		return nil, xerr.WithCode(errCode, fmt.Sprintf("yxy response: %v", r))
+	yxyResp, ok := resp.(*GetBusRecordYxyResp)
+	if !ok {
+		return nil, xerr.WithCode(xerr.ErrUnknown, "获取校车记录失败")
 	}
-
 	records := make([]types.BusRecord, 0)
 	for _, row := range yxyResp.Results {
 		record := types.BusRecord{
@@ -81,4 +69,31 @@ func (l *GetBusRecordLogic) GetBusRecord(req *types.GetBusRecordReq) (resp *type
 	return &types.GetBusRecordResp{
 		List: records,
 	}, nil
+}
+
+func fetchBusRecord(token string, page int, pageSize int, status string) (yxyResp *GetBusRecordYxyResp, err error) {
+	var errResp yxyClient.YxyBusErrorResp
+	client := yxyClient.GetClient()
+	r, err := client.R().
+		SetQueryParams(map[string]string{
+			"page":      strconv.Itoa(page),
+			"page_size": strconv.Itoa(pageSize),
+			"status":    "30",
+		}).
+		SetHeader("Authorization", token).
+		SetResult(&yxyResp).
+		SetError(&errResp).
+		Get(consts.GET_BUS_RECORD_URL)
+	if err != nil {
+		return nil, xerr.WithCode(xerr.ErrHttpClient, err.Error())
+	}
+
+	if r.StatusCode() != 200 {
+		errCode := xerr.ErrUnknown
+		if errResp.Detail.Code == "AUTH_FAIL" {
+			errCode = xerr.ErrBusTokenInvalid
+		}
+		return nil, xerr.WithCode(errCode, fmt.Sprintf("yxy response: %v", r))
+	}
+	return yxyResp, nil
 }

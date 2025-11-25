@@ -2,6 +2,7 @@ package cron
 
 import (
 	"context"
+	"yxy-go/internal/logic/bus"
 	"yxy-go/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -26,7 +27,7 @@ func (c *CronJob) MustRegister() {
 		l := NewSendLowBatteryAlertLogic(c.ctx, c.svcCtx)
 		l.Logger.Info("开始发送低电量提醒")
 		l.SendLowBatteryAlertLogic()
-		l.Logger.Info("开始发送低电量提醒")
+		l.Logger.Info("结束发送低电量提醒")
 	})
 	if err != nil {
 		panic(err)
@@ -34,12 +35,12 @@ func (c *CronJob) MustRegister() {
 
 	c.Logger.Info("低电量提醒定时任务注册成功")
 	_, err = c.svcCtx.Cron.AddFunc(c.svcCtx.Config.BusService.CronTime, func() {
-		l := NewUpdateBusInfoLogic(c.ctx, c.svcCtx)
+		l := bus.NewUpdateBusInfoLogic(c.ctx, c.svcCtx)
 		l.Logger.Info("开始获取校车信息")
 		l.UpdateBusInfoLogic()
 		l.Logger.Info("结束获取校车信息")
 	})
-	c.Logger.Info("低电量提醒定时任务注册成功")
+	c.Logger.Info("校车信息查询定时任务注册成功")
 	if err != nil {
 		panic(err)
 	}

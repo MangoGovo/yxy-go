@@ -11,17 +11,20 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/stretchr/testify v1.10.0
 	github.com/zeromicro/go-zero v1.8.1
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.7
 )
 
-require github.com/andybalholm/cascadia v1.3.3 // indirect
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/ArtisanCloud/PowerLibs/v3 v3.3.1 // indirect
-	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

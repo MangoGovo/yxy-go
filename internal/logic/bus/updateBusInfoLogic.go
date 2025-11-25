@@ -1,20 +1,18 @@
-package cron
+package bus
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 	"yxy-go/internal/consts"
-	"yxy-go/internal/logic/bus"
+	"yxy-go/internal/manager/auth"
 	"yxy-go/internal/svc"
 	"yxy-go/internal/types"
 	"yxy-go/internal/utils/yxyClient"
 	"yxy-go/pkg/xerr"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -51,53 +49,45 @@ type GetBusDateYxyResp struct {
 
 type UpdateBusInfoLogic struct {
 	logx.Logger
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
+	ctx         context.Context
+	svcCtx      *svc.ServiceContext
+	authManager *auth.BusAuthManager
 }
 
 func NewUpdateBusInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateBusInfoLogic {
 	return &UpdateBusInfoLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		Logger:      logx.WithContext(ctx),
+		ctx:         ctx,
+		svcCtx:      svcCtx,
+		authManager: auth.NewBusAuthManager(ctx, svcCtx),
 	}
 }
 
+// UpdateBusInfoLogic 获取校车信息并重试
 func (l *UpdateBusInfoLogic) UpdateBusInfoLogic() {
-	l.Logger.Info("Start to update bus info at ", time.Now().Format("2006-01-02 15:04:05"))
-	err := l.updateBusInfo()
-	retries := 0
 	maxRetries := l.svcCtx.Config.BusService.MaxRetries
-
-	for err != nil && retries < maxRetries {
-		l.Logger.Errorf("Update bus info failed, retrying... (attempt %d/%d): %v", retries+1, maxRetries, err)
-		time.Sleep(time.Second * 5) // Wait 5 seconds between retries
-		err = l.updateBusInfo()
-		retries++
+	uid := l.svcCtx.Config.BusService.UID
+	for retries := 0; retries < maxRetries; retries++ {
+		_, err := l.authManager.WithAuthToken(uid, func(token string) (any, error) {
+			return nil, l.updateBusInfo(token)
+		})
+		if err == nil {
+			l.Logger.Info("成功获取校车信息")
+			return
+		}
+		l.Logger.Errorf("获取校车信息失败, 重试中... (重试次数 %d/%d): %v", retries+1, maxRetries, err)
+		time.Sleep(time.Second * 5)
 	}
-
-	if err != nil {
-		l.Logger.Errorf("Update bus info failed after %d retries: %v", maxRetries, err)
-	} else {
-		l.Logger.Info("Update bus info success at ", time.Now().Format("2006-01-02 15:04:05"))
-	}
+	l.Logger.Errorf("获取校车信息失败! (总重试次数: %s)", maxRetries)
 }
 
-func (l *UpdateBusInfoLogic) updateBusInfo() error {
+func (l *UpdateBusInfoLogic) updateBusInfo(token string) error {
 	var busData []types.BusInfo
-	token, err := l.getBusAuthToken(l.svcCtx.Config.BusService.UID)
+	busInfoList, err := l.FetchBusInfo(token)
 	if err != nil {
-		l.Logger.Errorf("Get bus auth token failed: %v", err)
+		l.Logger.Errorf("获取校车信息失败, http 请求失败")
 		return err
 	}
-
-	busInfoList, err := l.fetchBusInfo(token)
-
-	if err != nil {
-		l.Logger.Errorf("Fetch bus info failed: %v", err)
-		return err
-	}
-
 	for _, busInfo := range busInfoList.Results {
 		var tmp types.BusInfo
 		tmp.ID = busInfo.ID
@@ -111,17 +101,15 @@ func (l *UpdateBusInfoLogic) updateBusInfo() error {
 				Seq:  station.Order,
 			})
 		}
-
 		busTimeResp, err := l.fetchBusTime(token, busInfo.ID)
 		if err != nil {
-			l.Logger.Errorf("Fetch bus time failed: %v", err)
-			continue
+			l.Logger.Errorf("获取校车时间失败, %v", err)
+			return err
 		}
-
 		for _, busTime := range busTimeResp {
 			busDataResp, err := l.fetchBusDate(token, busInfo.ID, busTime.ID)
 			if err != nil {
-				l.Logger.Errorf("Fetch bus date failed: %v", err)
+				l.Logger.Errorf("获取校车日期失败, %v", err)
 				continue
 			}
 
@@ -164,28 +152,7 @@ func (l *UpdateBusInfoLogic) updateBusInfo() error {
 	return nil
 }
 
-func (l *UpdateBusInfoLogic) getBusAuthToken(yxyUID string) (string, error) {
-	cacheKey := "bus:auth_token:" + yxyUID
-	cachedToken, err := l.svcCtx.Rdb.Get(l.ctx, cacheKey).Result()
-	if errors.Is(err, redis.Nil) {
-		authLogic := bus.NewGetBusAuthLogic(l.ctx, l.svcCtx)
-		resp, err := authLogic.GetBusAuth(&types.GetBusAuthReq{
-			UID: yxyUID,
-		})
-		if err != nil {
-			return "", err
-		}
-		if err := l.svcCtx.Rdb.Set(l.ctx, cacheKey, resp.Token, 7*24*time.Hour).Err(); err != nil {
-			return "", err
-		}
-		return resp.Token, nil
-	} else if err != nil {
-		return "", err
-	}
-	return cachedToken, nil
-}
-
-func (l *UpdateBusInfoLogic) fetchBusInfo(token string) (GetBusInfoYxyResp, error) {
+func (l *UpdateBusInfoLogic) FetchBusInfo(token string) (*GetBusInfoYxyResp, error) {
 	var yxyResp GetBusInfoYxyResp
 
 	client := yxyClient.GetClient()
@@ -200,17 +167,16 @@ func (l *UpdateBusInfoLogic) fetchBusInfo(token string) (GetBusInfoYxyResp, erro
 
 	if err != nil {
 		log.Printf("Error sending request to %s: %v\n", consts.GET_BUS_INFO_URL, err)
-		return GetBusInfoYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, err.Error())
+		return nil, xerr.WithCode(xerr.ErrHttpClient, err.Error())
 	}
 
 	if r.StatusCode() == 400 {
-		return GetBusInfoYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
+		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
 	} else if r.StatusCode() == 500 {
-		return GetBusInfoYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
+		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
 	}
 
-	// fmt.Println(yxyResp)
-	return yxyResp, nil
+	return &yxyResp, nil
 }
 
 func (l *UpdateBusInfoLogic) fetchBusTime(token, busID string) ([]GetBusTimeYxyResp, error) {

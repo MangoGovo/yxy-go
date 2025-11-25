@@ -3,11 +3,12 @@ package bus
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"yxy-go/internal/logic/bus"
 	"yxy-go/internal/svc"
 	"yxy-go/internal/types"
 	"yxy-go/pkg/response"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func GetBusRecordHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {

@@ -34,7 +34,8 @@ type wxAuthResp struct {
 	Token string `json:"token"`
 }
 
-func (l *BusAuthManager) fetchAuthToken(uid string) (string, error) {
+// FetchAuthToken 发送请求获取AuthToken
+func (l *BusAuthManager) FetchAuthToken(uid string) (string, error) {
 	// 1. 鉴权请求
 	resp, err := yxyClient.GetClient().R().
 		SetQueryParams(map[string]string{
@@ -87,7 +88,7 @@ func (l *BusAuthManager) getCacheKey(uid string) string {
 }
 
 func (l *BusAuthManager) refreshCachedAuthToken(uid string) (string, error) {
-	token, err := l.fetchAuthToken(uid)
+	token, err := l.FetchAuthToken(uid)
 	if err != nil {
 		return "", err
 	}

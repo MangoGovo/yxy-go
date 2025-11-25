@@ -12,7 +12,7 @@ func TestFetchAuthToken(t *testing.T) {
 		t.Skip("YxyUid 未设置，跳过此测试")
 	}
 	bm := BusAuthManager{}
-	token, err := bm.fetchAuthToken(uid)
+	token, err := bm.FetchAuthToken(uid)
 	if err != nil {
 		t.Error(err)
 		return

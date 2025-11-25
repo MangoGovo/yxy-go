@@ -36,8 +36,8 @@ func NewElectricityAuthManager(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
-// fetchAuthToken 发送请求获取AuthToken
-func (l *ElectricityAuthManager) fetchAuthToken(uid string) (string, error) {
+// FetchAuthToken 发送请求获取AuthToken
+func (l *ElectricityAuthManager) FetchAuthToken(uid string) (string, error) {
 	_, yxyHeaders := yxyClient.GetYxyBaseReqParam("")
 	yxyReq := map[string]string{
 		"bindSkip":    "1",
@@ -105,7 +105,7 @@ func (l *ElectricityAuthManager) getCacheKey(uid string) string {
 
 // refreshCachedAuthToken 刷新缓存中的AuthToken
 func (l *ElectricityAuthManager) refreshCachedAuthToken(uid string) (string, error) {
-	token, err := l.fetchAuthToken(uid)
+	token, err := l.FetchAuthToken(uid)
 	if err != nil {
 		return "", err
 	}
