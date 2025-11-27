@@ -20,11 +20,11 @@ func TestFetchBusInfo(t *testing.T) {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 	uid := c.BusService.UID
-	l := &bus.UpdateBusInfoLogic{}
+	l := &bus.GetBusInfoLogic{}
 	m := &auth.BusAuthManager{}
 	token, err := m.FetchAuthToken(uid)
 	assert.NoError(t, err)
-	info, err := l.FetchBusInfo(token)
+	info, err := l.FetchBusInfo(token, "")
 	assert.NoError(t, err)
 	assert.NotNil(t, info)
 	t.Log(info)
@@ -36,6 +36,6 @@ func TestUpdateBusInfo(t *testing.T) {
 	conf.MustLoad(*configFile, &c)
 	c.MustSetUp()
 	svcCtx := svc.NewServiceContext(c)
-	l := bus.NewUpdateBusInfoLogic(context.Background(), svcCtx)
-	l.UpdateBusInfoLogic()
+	l := bus.NewGetBusInfoLogic(context.Background(), svcCtx)
+	l.UpdateBusInfo()
 }

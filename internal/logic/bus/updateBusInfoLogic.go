@@ -1,21 +1,17 @@
 package bus
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 	"yxy-go/internal/consts"
-	"yxy-go/internal/manager/auth"
-	"yxy-go/internal/svc"
 	"yxy-go/internal/types"
 	"yxy-go/internal/utils/yxyClient"
 	"yxy-go/pkg/xerr"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/jsonx"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type GetBusInfoYxyResp struct {
@@ -48,33 +44,17 @@ type GetBusDateYxyResp struct {
 	} `json:"results"`
 }
 
-type UpdateBusInfoLogic struct {
-	logx.Logger
-	ctx         context.Context
-	svcCtx      *svc.ServiceContext
-	authManager *auth.BusAuthManager
-}
-
-func NewUpdateBusInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateBusInfoLogic {
-	return &UpdateBusInfoLogic{
-		Logger:      logx.WithContext(ctx),
-		ctx:         ctx,
-		svcCtx:      svcCtx,
-		authManager: auth.NewBusAuthManager(ctx, svcCtx),
-	}
-}
-
-// UpdateBusInfoLogic 获取校车信息并重试
-func (l *UpdateBusInfoLogic) UpdateBusInfoLogic() {
+// UpdateBusInfo 获取校车信息并重试
+func (l *GetBusInfoLogic) UpdateBusInfo() {
 	maxRetries := l.svcCtx.Config.BusService.MaxRetries
 	uid := l.svcCtx.Config.BusService.UID
 	retries := 0
-	var busData []*types.BusInfo
+	var busData []types.BusInfo
 	for ; retries < maxRetries; retries++ {
 		resp, err := l.authManager.WithAuthToken(uid, func(token string) (any, error) {
-			return l.FetchBusInfo(token)
+			return l.FetchBusInfo(token, "")
 		})
-		_busData, ok := resp.([]*types.BusInfo)
+		_busData, ok := resp.([]types.BusInfo)
 		if err == nil && ok {
 			l.Logger.Info("成功获取校车信息")
 			busData = _busData
@@ -92,16 +72,16 @@ func (l *UpdateBusInfoLogic) UpdateBusInfoLogic() {
 	}
 }
 
-func (l *UpdateBusInfoLogic) FetchBusInfo(token string) ([]*types.BusInfo, error) {
-	var busData []*types.BusInfo
-	busInfoList, err := l.fetchBusBaseInfo(token)
+func (l *GetBusInfoLogic) FetchBusInfo(token, search string) ([]types.BusInfo, error) {
+	// TODO 优化查询逻辑，减少请求次数, 避免循环请求
+	var busData []types.BusInfo
+	busInfoList, err := l.fetchBusBaseInfo(token, search)
 	if err != nil {
 		l.Logger.Errorf("获取校车信息失败, http 请求失败")
 		return nil, err
 	}
 	for _, busInfo := range busInfoList.Results {
 		var tmp types.BusInfo
-		tmp.ID = busInfo.ID
 		tmp.Name = busInfo.Name
 		tmp.Price = busInfo.Price
 
@@ -132,13 +112,13 @@ func (l *UpdateBusInfoLogic) FetchBusInfo(token string) ([]*types.BusInfo, error
 				})
 			}
 		}
-		busData = append(busData, &tmp)
+		busData = append(busData, tmp)
 	}
 	return busData, nil
 }
 
 // refreshCache 刷新缓存, 采用RPush临时key再Rename的方式保证原子性
-func (l *UpdateBusInfoLogic) refreshCache(busData []*types.BusInfo) error {
+func (l *GetBusInfoLogic) refreshCache(busData []types.BusInfo) error {
 	cacheKey := "bus:info:data"
 	cacheUpdatedAtKey := "bus:info:updated_at"
 	tempCacheKey := "bus:info:temp_data"
@@ -173,12 +153,13 @@ func (l *UpdateBusInfoLogic) refreshCache(busData []*types.BusInfo) error {
 	return nil
 }
 
-func (l *UpdateBusInfoLogic) fetchBusBaseInfo(token string) (*GetBusInfoYxyResp, error) {
+func (l *GetBusInfoLogic) fetchBusBaseInfo(token, search string) (*GetBusInfoYxyResp, error) {
 	var yxyResp GetBusInfoYxyResp
 
 	client := yxyClient.GetClient()
 	r, err := client.R().
 		SetQueryParams(map[string]string{
+			"search":    search,
 			"page":      "1",
 			"page_size": "999",
 		}).
@@ -200,7 +181,7 @@ func (l *UpdateBusInfoLogic) fetchBusBaseInfo(token string) (*GetBusInfoYxyResp,
 	return &yxyResp, nil
 }
 
-func (l *UpdateBusInfoLogic) fetchBusTime(token, busID string) ([]GetBusTimeYxyResp, error) {
+func (l *GetBusInfoLogic) fetchBusTime(token, busID string) ([]GetBusTimeYxyResp, error) {
 	// bustime 接口返回的是一个列表，每一项中的 departure_time 才是有效的班车时间，而不是bustime中的项
 	var yxyResp []GetBusTimeYxyResp
 
@@ -231,7 +212,7 @@ func (l *UpdateBusInfoLogic) fetchBusTime(token, busID string) ([]GetBusTimeYxyR
 	return yxyResp, nil
 }
 
-func (l *UpdateBusInfoLogic) fetchBusDate(token, busID, busTimeID string) (GetBusDateYxyResp, error) {
+func (l *GetBusInfoLogic) fetchBusDate(token, busID, busTimeID string) (GetBusDateYxyResp, error) {
 	var yxyResp GetBusDateYxyResp
 
 	url := strings.Replace(consts.GET_BUS_DATE_URL, "{id}", busID, 1)

@@ -4,11 +4,10 @@
 package types
 
 type BusInfo struct {
-	ID       string       `json:"id"`
-	Name     string       `json:"name"`
-	Price    int          `json:"price"`
-	Stations []BusStation `json:"stations"`
-	BusTime  []BusTime    `json:"bus_time"`
+	Name     string    `json:"name"`
+	Price    int       `json:"price"`
+	Stations []string  `json:"stations"`
+	BusTime  []BusTime `json:"bus_time"`
 }
 
 type BusRecord struct {
@@ -18,14 +17,7 @@ type BusRecord struct {
 	DepartureTime string `json:"departure_time"`
 }
 
-type BusStation struct {
-	ID   string `json:"id"`
-	Name string `json:"station_name"`
-	Seq  int    `json:"station_seq"`
-}
-
 type BusTime struct {
-	ID            string `json:"id"`
 	DepartureTime string `json:"departure_time"`
 	RemainSeats   int    `json:"remain_seats"`
 	OrderedSeats  int    `json:"ordered_seats"`
@@ -48,8 +40,8 @@ type ElectricityUsageRecord struct {
 }
 
 type GetBusInfoReq struct {
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
+	Page     int    `form:"page,optional" default:"1"`
+	PageSize int    `form:"page_size,optional" default:"100"`
 	Search   string `form:"search,optional"`
 }
 
@@ -60,8 +52,8 @@ type GetBusInfoResp struct {
 
 type GetBusRecordReq struct {
 	Uid      string `form:"uid"`
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
+	Page     int    `form:"page,optional" default:"1"`
+	PageSize int    `form:"page_size,optional" default:"100"`
 }
 
 type GetBusRecordResp struct {
@@ -70,8 +62,8 @@ type GetBusRecordResp struct {
 
 type GetBusReservationReq struct {
 	Uid      string `form:"uid"`
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
+	Page     int    `form:"page,optional" default:"1"`
+	PageSize int    `form:"page_size,optional" default:"100"`
 }
 
 type GetBusReservationResp struct {
