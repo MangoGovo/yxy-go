@@ -106,11 +106,7 @@ func (l *UpdateBusInfoLogic) FetchBusInfo(token string) ([]*types.BusInfo, error
 		tmp.Price = busInfo.Price
 
 		for _, station := range busInfo.Station {
-			tmp.Stations = append(tmp.Stations, types.BusStation{
-				ID:   station.ID,
-				Name: station.Name,
-				Seq:  station.Order,
-			})
+			tmp.Stations = append(tmp.Stations, station.Name)
 		}
 		busTimeResp, err := l.fetchBusTime(token, busInfo.ID)
 		if err != nil {
@@ -127,12 +123,10 @@ func (l *UpdateBusInfoLogic) FetchBusInfo(token string) ([]*types.BusInfo, error
 			if len(busDataResp.Results) == 0 {
 				tmp.BusTime = append(tmp.BusTime, types.BusTime{
 					DepartureTime: busTime.DepartureTime,
-					ID:            busTime.ID,
 				})
 			} else {
 				tmp.BusTime = append(tmp.BusTime, types.BusTime{
 					DepartureTime: busTime.DepartureTime,
-					ID:            busTime.ID,
 					RemainSeats:   busDataResp.Results[0].RemainSeats,
 					OrderedSeats:  busDataResp.Results[0].OrderedSeats,
 				})

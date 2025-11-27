@@ -29,8 +29,7 @@ func NewGetBusInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetBus
 func (l *GetBusInfoLogic) GetBusInfo(req *types.GetBusInfoReq) (resp *types.GetBusInfoResp, err error) {
 	start := (req.Page - 1) * req.PageSize
 	end := start + req.PageSize - 1
-
-	busInfoList, err := l.svcCtx.Rdb.LRange(l.ctx, "BusInfo", int64(start), int64(end)).Result()
+	busInfoList, err := l.svcCtx.Rdb.LRange(l.ctx, "bus:info:data", int64(start), int64(end)).Result()
 	if err != nil {
 		return nil, err
 	}

@@ -8,27 +8,20 @@ info (
 )
 // 校车信息
 type (
-	BusStation {
-		ID   string `json:"id"`
-		Name string `json:"station_name"`
-		Seq  int    `json:"station_seq"`
-	}
 	BusTime {
-		ID            string `json:"id"`
 		DepartureTime string `json:"departure_time"`
 		RemainSeats   int    `json:"remain_seats"`
 		OrderedSeats  int    `json:"ordered_seats"`
 	}
 	BusInfo {
-		ID       string       `json:"id"`
 		Name     string       `json:"name"`
 		Price    int          `json:"price"`
-		Stations []BusStation `json:"stations"`
+		Stations []string `json:"stations"`
 		BusTime  []BusTime    `json:"bus_time"`
 	}
 	GetBusInfoReq {
-		Page     int    `form:"page"`
-		PageSize int    `form:"page_size"`
+		Page     int    `form:"page,optional" default:"1"`
+		PageSize int    `form:"page_size,optional" default:"100"`
 		Search   string `form:"search,optional"`
 	}
 	GetBusInfoResp {
@@ -47,8 +40,8 @@ type (
 	}
 	GetBusRecordReq {
 		Uid    string `form:"uid"`
-		Page     int    `form:"page"`
-		PageSize int    `form:"page_size"`
+        Page     int    `form:"page,optional" default:"1"`
+        PageSize int    `form:"page_size,optional" default:"100"`
 	}
 	GetBusRecordResp {
 		List []BusRecord `json:"list"`
@@ -59,8 +52,8 @@ type (
 type (
     GetBusReservationReq{
         Uid    string `form:"uid"`
-        Page     int    `form:"page"`
-        PageSize int    `form:"page_size"`
+        Page     int    `form:"page,optional" default:"1"`
+        PageSize int    `form:"page_size,optional" default:"100"`
     }
 
     GetBusReservationResp {
