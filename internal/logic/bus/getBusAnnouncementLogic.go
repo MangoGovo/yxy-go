@@ -35,9 +35,7 @@ func (l *GetBusAnnouncementLogic) GetBusAnnouncement(req *types.GetBusAnnounceme
 	if page < 1 {
 		page = 1
 	}
-	if pageSize < 1 {
-		pageSize = 1
-	} else if pageSize > 10 {
+	if pageSize > 10 || pageSize < 1 {
 		pageSize = 10
 	}
 	return l.getAnnouncementFromCache(page, pageSize)
@@ -67,6 +65,12 @@ func (l *GetBusAnnouncementLogic) getAnnouncementFromCache(page, pageSize int) (
 		announcementList = append(announcementList, tmp)
 	}
 
+	// 获取总数
+	total, err := l.svcCtx.Rdb.LLen(l.ctx, cacheKey).Result()
+	if err != nil {
+		return nil, err
+	}
+
 	// 获取更新时间
 	updatedAt, err := l.svcCtx.Rdb.Get(l.ctx, cacheUpdatedAtKey).Int64()
 	if err != nil {
@@ -75,6 +79,7 @@ func (l *GetBusAnnouncementLogic) getAnnouncementFromCache(page, pageSize int) (
 
 	return &types.GetBusAnnouncementResp{
 		UpdatedAt: time.UnixMilli(updatedAt).Format("2006-01-02 15:04:05"),
+		Total:     total,
 		List:      announcementList,
 	}, nil
 }

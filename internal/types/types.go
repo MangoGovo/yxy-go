@@ -50,11 +50,12 @@ type ElectricityUsageRecord struct {
 
 type GetBusAnnouncementReq struct {
 	Page     int `form:"page,optional" default:"1"`
-	PageSize int `form:"page_size,optional" default:"20"`
+	PageSize int `form:"page_size,optional" default:"10"`
 }
 
 type GetBusAnnouncementResp struct {
 	UpdatedAt string            `json:"updated_at"`
+	Total     int64             `json:"total"`
 	List      []BusAnnouncement `json:"list"`
 }
 

@@ -75,6 +75,7 @@ type (
     }
     GetBusAnnouncementResp {
         UpdatedAt string `json:"updated_at"`
+        Total int64 `json:"total"`
         List []BusAnnouncement `json:"list"`
     }
 )
