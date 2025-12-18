@@ -33,8 +33,9 @@ type Config struct {
 		TemplateID   string
 	}
 	BusService struct {
-		UID        string
-		MaxRetries int
-		CronTime   string
+		UID                     string
+		MaxRetries              int
+		BusInfoCronTime         string
+		BusAnnouncementCronTime string
 	}
 }

@@ -3,6 +3,14 @@
 
 package types
 
+type BusAnnouncement struct {
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	PublishedAt string `json:"published_at"`
+	Abstract    string `json:"abstract"`
+	Content     string `json:"content"`
+}
+
 type BusInfo struct {
 	ID       string    `json:"id"`
 	Name     string    `json:"name"`
@@ -38,6 +46,16 @@ type ElectricityRechargeRecord struct {
 type ElectricityUsageRecord struct {
 	Usage    string `json:"usage"`
 	Datetime string `json:"datetime"`
+}
+
+type GetBusAnnouncementReq struct {
+	Page     int `form:"page,optional" default:"1"`
+	PageSize int `form:"page_size,optional" default:"20"`
+}
+
+type GetBusAnnouncementResp struct {
+	UpdatedAt string            `json:"updated_at"`
+	List      []BusAnnouncement `json:"list"`
 }
 
 type GetBusInfoReq struct {

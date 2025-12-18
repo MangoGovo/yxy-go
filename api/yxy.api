@@ -80,5 +80,8 @@ service yxy-api {
 
 	@handler getBusReservation
 	get /reservation (GetBusReservationReq) returns (GetBusReservationResp)
+
+	@handler getBusAnnouncement
+	get /announcement (GetBusAnnouncementReq) returns (GetBusAnnouncementResp)
 }
 

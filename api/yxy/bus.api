@@ -59,3 +59,22 @@ type (
         List []BusRecord `json:"list"`
     }
 )
+
+// 校车公告
+type (
+    BusAnnouncement {
+        Title string `json:"title"`
+        Author string `json:"author"`
+        PublishedAt string `json:"published_at"`
+        Abstract string `json:"abstract"`
+        Content string `json:"content"`
+    }
+    GetBusAnnouncementReq {
+        Page     int    `form:"page,optional" default:"1"`
+        PageSize int    `form:"page_size,optional" default:"10"`
+    }
+    GetBusAnnouncementResp {
+        UpdatedAt string `json:"updated_at"`
+        List []BusAnnouncement `json:"list"`
+    }
+)

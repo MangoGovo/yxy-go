@@ -21,6 +21,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodGet,
+				Path:    "/announcement",
+				Handler: bus.GetBusAnnouncementHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
 				Path:    "/info",
 				Handler: bus.GetBusInfoHandler(serverCtx),
 			},

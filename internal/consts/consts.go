@@ -42,15 +42,14 @@ const (
 )
 
 const (
-	GET_BUS_AUTH_CODE_URL  = BUS_AUTH_URL + "/routeauth/auth/route/ua/authorize/getCodeV2"
-	GET_BUS_AUTH_TOKEN_URL = BUS_URL + "/api/v1/staff/auths/wx_auth/"
-	GET_BUS_ACCESS_URL     = AUTH_URL + "/auth/route/authorize/agreementAuth"
-	GET_BUS_INFO_URL       = BUS_URL + "/api/v2/staff/shuttlebus/"
-	GET_BUS_TIME_URL       = BUS_URL + "/api/v2/staff/shuttlebus/{id}/bustimes/"
-	GET_BUS_DATE_URL       = BUS_URL + "/api/v2/staff/shuttlebus/{id}/dates/"
-	GET_BUS_RECORD_URL     = BUS_URL + "/api/v1/staff/busorders/"
-	GET_BUS_QRCODE_URL     = BUS_URL + "/api/v3/pos/staff_qrcode/"
-	GET_BUS_MESSAGE_URL    = BUS_URL + "/api/v1/staff/messages/"
+	GET_BUS_AUTH_CODE_URL    = BUS_AUTH_URL + "/routeauth/auth/route/ua/authorize/getCodeV2"
+	GET_BUS_AUTH_TOKEN_URL   = BUS_URL + "/api/v1/staff/auths/wx_auth/"
+	GET_BUS_ACCESS_URL       = AUTH_URL + "/auth/route/authorize/agreementAuth"
+	GET_BUS_INFO_URL         = BUS_URL + "/api/v2/staff/shuttlebus/"
+	GET_BUS_TIME_URL         = BUS_URL + "/api/v2/staff/shuttlebus/{id}/bustimes/"
+	GET_BUS_DATE_URL         = BUS_URL + "/api/v2/staff/shuttlebus/{id}/dates/"
+	GET_BUS_RECORD_URL       = BUS_URL + "/api/v1/staff/busorders/"
+	GET_BUS_ANNOUNCEMENT_URL = BUS_URL + "/api/v1/staff/messages/"
 	// GET_BUS_MESSAGE_UNREAD_COUNT_URL = BUS_URL + "/api/v1/staff/messages/unread_count/"
 )
 

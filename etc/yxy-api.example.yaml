@@ -71,4 +71,5 @@ MiniProgram:
 BusService:
     UID: "1234567890"
     MaxRetries: 5
-    CronTime: "*/1 * * * *"
+    BusInfoCronTime: "*/1 * * * *"
+    BusAnnouncementCronTime: "0 * * * *"
