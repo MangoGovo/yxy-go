@@ -14,14 +14,13 @@ type (
 		OrderedSeats  int    `json:"ordered_seats"`
 	}
 	BusInfo {
+        ID       string       `json:"id"`
 		Name     string       `json:"name"`
 		Price    int          `json:"price"`
 		Stations []string `json:"stations"`
 		BusTime  []BusTime    `json:"bus_time"`
 	}
 	GetBusInfoReq {
-		Page     int    `form:"page,optional" default:"1"`
-		PageSize int    `form:"page_size,optional" default:"100"`
 		Search   string `form:"search,optional"`
 	}
 	GetBusInfoResp {

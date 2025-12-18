@@ -8,6 +8,7 @@ import (
 	"yxy-go/internal/consts"
 	"yxy-go/internal/svc"
 	"yxy-go/internal/utils/yxyClient"
+	"yxy-go/pkg/xerr"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
@@ -53,10 +54,9 @@ func (l *BusAuthManager) FetchAuthToken(uid string) (string, error) {
 
 	// 2. 获取code
 	location := resp.RawResponse.Header.Get("Location")
-	if err != nil && !errors.Is(err, resty.ErrAutoRedirectDisabled) {
-		return "", errors.New("鉴权获取code失败:重定向失败")
+	if location == "" {
+		return "", xerr.WithCode(xerr.ErrUserNotFound, "用户不存在")
 	}
-
 	// 3. 获取corpcode
 	resp, err = yxyClient.GetClient().R().Get(location)
 	if err != nil && !errors.Is(err, resty.ErrAutoRedirectDisabled) {

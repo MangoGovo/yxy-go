@@ -24,7 +24,7 @@ func TestFetchBusInfo(t *testing.T) {
 	m := &auth.BusAuthManager{}
 	token, err := m.FetchAuthToken(uid)
 	assert.NoError(t, err)
-	info, err := l.FetchBusInfo(token, "")
+	info, err := l.FetchAllBusInfo(token)
 	assert.NoError(t, err)
 	assert.NotNil(t, info)
 	t.Log(info)

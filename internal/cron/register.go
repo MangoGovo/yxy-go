@@ -35,9 +35,9 @@ func (c *CronJob) MustRegister() {
 
 	c.Logger.Info("低电量提醒定时任务注册成功")
 	_, err = c.svcCtx.Cron.AddFunc(c.svcCtx.Config.BusService.CronTime, func() {
-		l := bus.NewUpdateBusInfoLogic(c.ctx, c.svcCtx)
+		l := bus.NewGetBusInfoLogic(c.ctx, c.svcCtx)
 		l.Logger.Info("开始获取校车信息")
-		l.UpdateBusInfoLogic()
+		l.UpdateBusInfo()
 		l.Logger.Info("结束获取校车信息")
 	})
 	c.Logger.Info("校车信息查询定时任务注册成功")

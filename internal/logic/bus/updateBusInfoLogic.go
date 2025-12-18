@@ -1,20 +1,15 @@
 package bus
 
 import (
-	"fmt"
-	"log"
-	"strings"
 	"time"
-	"yxy-go/internal/consts"
 	"yxy-go/internal/types"
-	"yxy-go/internal/utils/yxyClient"
 	"yxy-go/pkg/xerr"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/jsonx"
 )
 
-type GetBusInfoYxyResp struct {
+type FetchBusInfoYxyResp struct {
 	Count   int `json:"count"`
 	Results []struct {
 		ID      string `json:"id"`
@@ -28,7 +23,7 @@ type GetBusInfoYxyResp struct {
 	} `json:"results"`
 }
 
-type GetBusTimeYxyResp struct {
+type FetchBusScheduleYxyResp struct {
 	Info struct {
 		Name string `json:"shuttle_name"`
 	} `json:"shuttle_bus_vo"`
@@ -36,7 +31,7 @@ type GetBusTimeYxyResp struct {
 	DepartureTime string `json:"departure_time"`
 }
 
-type GetBusDateYxyResp struct {
+type FetchBusReservationYxyResp struct {
 	// 这里看似是一个列表但是他只会返回一个...
 	Results []struct {
 		OrderedSeats int `json:"order_cnt"`
@@ -52,7 +47,7 @@ func (l *GetBusInfoLogic) UpdateBusInfo() {
 	var busData []types.BusInfo
 	for ; retries < maxRetries; retries++ {
 		resp, err := l.authManager.WithAuthToken(uid, func(token string) (any, error) {
-			return l.FetchBusInfo(token, "")
+			return l.FetchAllBusInfo(token)
 		})
 		_busData, ok := resp.([]types.BusInfo)
 		if err == nil && ok {
@@ -70,51 +65,6 @@ func (l *GetBusInfoLogic) UpdateBusInfo() {
 	if err := l.refreshCache(busData); err != nil {
 		l.Logger.Errorf("刷新校车信息缓存失败: %v", err)
 	}
-}
-
-func (l *GetBusInfoLogic) FetchBusInfo(token, search string) ([]types.BusInfo, error) {
-	// TODO 优化查询逻辑，减少请求次数, 避免循环请求
-	var busData []types.BusInfo
-	busInfoList, err := l.fetchBusBaseInfo(token, search)
-	if err != nil {
-		l.Logger.Errorf("获取校车信息失败, http 请求失败")
-		return nil, err
-	}
-	for _, busInfo := range busInfoList.Results {
-		var tmp types.BusInfo
-		tmp.Name = busInfo.Name
-		tmp.Price = busInfo.Price
-
-		for _, station := range busInfo.Station {
-			tmp.Stations = append(tmp.Stations, station.Name)
-		}
-		busTimeResp, err := l.fetchBusTime(token, busInfo.ID)
-		if err != nil {
-			l.Logger.Errorf("获取校车时间失败, %v", err)
-			return nil, err
-		}
-		for _, busTime := range busTimeResp {
-			busDataResp, err := l.fetchBusDate(token, busInfo.ID, busTime.ID)
-			if err != nil {
-				l.Logger.Errorf("获取校车日期失败, %v", err)
-				continue
-			}
-
-			if len(busDataResp.Results) == 0 {
-				tmp.BusTime = append(tmp.BusTime, types.BusTime{
-					DepartureTime: busTime.DepartureTime,
-				})
-			} else {
-				tmp.BusTime = append(tmp.BusTime, types.BusTime{
-					DepartureTime: busTime.DepartureTime,
-					RemainSeats:   busDataResp.Results[0].RemainSeats,
-					OrderedSeats:  busDataResp.Results[0].OrderedSeats,
-				})
-			}
-		}
-		busData = append(busData, tmp)
-	}
-	return busData, nil
 }
 
 // refreshCache 刷新缓存, 采用RPush临时key再Rename的方式保证原子性
@@ -151,92 +101,4 @@ func (l *GetBusInfoLogic) refreshCache(busData []types.BusInfo) error {
 	l.svcCtx.Rdb.Set(l.ctx, cacheUpdatedAtKey, time.Now().UnixMilli(), 0)
 	l.svcCtx.Rdb.Persist(l.ctx, cacheKey)
 	return nil
-}
-
-func (l *GetBusInfoLogic) fetchBusBaseInfo(token, search string) (*GetBusInfoYxyResp, error) {
-	var yxyResp GetBusInfoYxyResp
-
-	client := yxyClient.GetClient()
-	r, err := client.R().
-		SetQueryParams(map[string]string{
-			"search":    search,
-			"page":      "1",
-			"page_size": "999",
-		}).
-		SetHeader("Authorization", token).
-		SetResult(&yxyResp).
-		Get(consts.GET_BUS_INFO_URL)
-
-	if err != nil {
-		log.Printf("Error sending request to %s: %v\n", consts.GET_BUS_INFO_URL, err)
-		return nil, xerr.WithCode(xerr.ErrHttpClient, err.Error())
-	}
-
-	if r.StatusCode() == 400 {
-		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	} else if r.StatusCode() == 500 {
-		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	}
-
-	return &yxyResp, nil
-}
-
-func (l *GetBusInfoLogic) fetchBusTime(token, busID string) ([]GetBusTimeYxyResp, error) {
-	// bustime 接口返回的是一个列表，每一项中的 departure_time 才是有效的班车时间，而不是bustime中的项
-	var yxyResp []GetBusTimeYxyResp
-
-	// url := fmt.Sprintf(consts.GET_BUS_TIME_URL, busID)
-	url := strings.Replace(consts.GET_BUS_TIME_URL, "{id}", busID, 1)
-
-	client := yxyClient.GetClient()
-
-	r, err := client.R().
-		SetQueryParams(map[string]string{
-			"shuttle_type": "-10",
-		}).
-		SetHeader("Authorization", token).
-		SetResult(&yxyResp).
-		Get(url)
-
-	if err != nil {
-		log.Printf("Error sending request to %s: %v\n", consts.GET_BUS_TIME_URL, err)
-		return nil, xerr.WithCode(xerr.ErrHttpClient, err.Error())
-	}
-
-	if r.StatusCode() == 400 {
-		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	} else if r.StatusCode() == 500 {
-		return nil, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	}
-
-	return yxyResp, nil
-}
-
-func (l *GetBusInfoLogic) fetchBusDate(token, busID, busTimeID string) (GetBusDateYxyResp, error) {
-	var yxyResp GetBusDateYxyResp
-
-	url := strings.Replace(consts.GET_BUS_DATE_URL, "{id}", busID, 1)
-
-	client := yxyClient.GetClient()
-
-	r, err := client.R().
-		SetQueryParams(map[string]string{
-			"shuttle_bus_time": busTimeID,
-		}).
-		SetHeader("Authorization", token).
-		SetResult(&yxyResp).
-		Get(url)
-
-	if err != nil {
-		log.Printf("Error sending request to %s: %v\n", consts.GET_BUS_DATE_URL, err)
-		return GetBusDateYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, err.Error())
-	}
-
-	if r.StatusCode() == 400 {
-		return GetBusDateYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	} else if r.StatusCode() == 500 {
-		return GetBusDateYxyResp{}, xerr.WithCode(xerr.ErrHttpClient, fmt.Sprintf("yxy response: %v", r))
-	}
-
-	return yxyResp, nil
 }
