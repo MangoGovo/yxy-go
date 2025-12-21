@@ -6,6 +6,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const tabSpace = "&nbsp;&nbsp;&nbsp;&nbsp;"
+
 // ParseHTMLAnnouncement 解析 HTML 公告，处理 p 标签换行
 func ParseHTMLAnnouncement(htmlContent string) string {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlContent))
@@ -21,7 +23,7 @@ func ParseHTMLAnnouncement(htmlContent string) string {
 		text := strings.TrimSpace(s.Text())
 		if text != "" {
 			if text != "各位师生：" {
-				result.WriteString("\t")
+				result.WriteString(tabSpace)
 			}
 			result.WriteString(text)
 			result.WriteString("\n")
