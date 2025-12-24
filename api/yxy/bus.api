@@ -63,11 +63,11 @@ type (
 // 校车公告
 type (
     BusAnnouncement {
-        Title string `json:"title"`
-        Author string `json:"author"`
+        Title       string `json:"title"`
+        Author      string `json:"author"`
         PublishedAt string `json:"published_at"`
-        Abstract string `json:"abstract"`
-        Content string `json:"content"`
+        Abstract    string `json:"abstract"`
+        Content     []string `json:"content"`
     }
     GetBusAnnouncementReq {
         Page     int    `form:"page,optional" default:"1"`

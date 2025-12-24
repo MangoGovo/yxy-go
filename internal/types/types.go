@@ -4,11 +4,11 @@
 package types
 
 type BusAnnouncement struct {
-	Title       string `json:"title"`
-	Author      string `json:"author"`
-	PublishedAt string `json:"published_at"`
-	Abstract    string `json:"abstract"`
-	Content     string `json:"content"`
+	Title       string   `json:"title"`
+	Author      string   `json:"author"`
+	PublishedAt string   `json:"published_at"`
+	Abstract    string   `json:"abstract"`
+	Content     []string `json:"content"`
 }
 
 type BusInfo struct {
