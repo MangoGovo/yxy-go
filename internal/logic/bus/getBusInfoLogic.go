@@ -106,21 +106,23 @@ func (l *GetBusInfoLogic) FetchAllBusInfo(token string) ([]types.BusInfo, error)
 			l.Logger.Errorf("获取校车时间失败, %v", err)
 			return nil, err
 		}
-		info.BusTime = make([]types.BusTime, len(busScheduleRespRaw))
+		info.BusTime = make([]types.BusTime, 0, len(busScheduleRespRaw))
 
-		for j, busTime := range busScheduleRespRaw {
+		for _, busTime := range busScheduleRespRaw {
 			// 获取各个班次预约情况
-			ordered, remaining, err := l.fetchBusReservation(token, info.ID, busTime.ID)
+			ordered, remaining, departureDatetime, err := l.fetchBusReservation(token, info.ID, busTime.ID)
 			if err != nil {
 				l.Logger.Errorf("获取校车日期失败, %v", err)
 				continue
 			}
-
-			info.BusTime[j] = types.BusTime{
-				DepartureTime: busTime.DepartureTime,
+			if ordered == 0 && remaining == 0 {
+				continue
+			}
+			info.BusTime = append(info.BusTime, types.BusTime{
+				DepartureTime: departureDatetime,
 				RemainSeats:   remaining,
 				OrderedSeats:  ordered,
-			}
+			})
 		}
 		busInfoList[i] = info
 	}
@@ -195,7 +197,7 @@ func (l *GetBusInfoLogic) fetchBusSchedule(token, busID string) ([]FetchBusSched
 }
 
 // fetchBusReservation 获取校车班次预约情况
-func (l *GetBusInfoLogic) fetchBusReservation(token, busID, busScheduleID string) (ordered, remaining int, err error) {
+func (l *GetBusInfoLogic) fetchBusReservation(token, busID, busScheduleID string) (ordered, remaining int, departureDatetime string, err error) {
 	var yxyResp FetchBusReservationYxyResp
 	ordered, remaining = 0, 0
 	url := strings.Replace(consts.GET_BUS_DATE_URL, "{id}", busID, 1)
@@ -211,11 +213,11 @@ func (l *GetBusInfoLogic) fetchBusReservation(token, busID, busScheduleID string
 		Get(url)
 	if err != nil {
 		l.Logger.Errorf("获取校车班次预约情况失败, Http请求失败  %s: %v", consts.GET_BUS_DATE_URL, err)
-		return 0, 0, xerr.WithCode(xerr.ErrHttpClient, err.Error())
+		return 0, 0, "", xerr.WithCode(xerr.ErrHttpClient, err.Error())
 	}
 	result := yxyResp.Results
 	if len(result) == 0 {
-		return 0, 0, nil
+		return 0, 0, "", nil
 	}
-	return result[0].OrderedSeats, result[0].RemainSeats, nil
+	return result[0].OrderedSeats, result[0].RemainSeats, result[0].DepartureDatetime, nil
 }

@@ -34,8 +34,9 @@ type FetchBusScheduleYxyResp struct {
 type FetchBusReservationYxyResp struct {
 	// 这里看似是一个列表但是他只会返回一个...
 	Results []struct {
-		OrderedSeats int `json:"order_cnt"`
-		RemainSeats  int `json:"remaining_seats"`
+		OrderedSeats      int    `json:"order_cnt"`
+		RemainSeats       int    `json:"remaining_seats"`
+		DepartureDatetime string `json:"departure_datetime"`
 	} `json:"results"`
 }
 
