@@ -23,7 +23,7 @@ func NewCronJob(ctx context.Context, svcCtx *svc.ServiceContext) *CronJob {
 }
 
 func (c *CronJob) MustRegister() {
-	_, err := c.svcCtx.Cron.AddFunc(c.svcCtx.Config.CronTime, func() {
+	_, err := c.svcCtx.Cron.AddFunc(c.svcCtx.Config.LowBattery.CronTime, func() {
 		l := NewSendLowBatteryAlertLogic(c.ctx, c.svcCtx)
 		l.Logger.Info("开始发送低电量提醒")
 		l.SendLowBatteryAlertLogic()

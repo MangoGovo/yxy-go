@@ -58,15 +58,3 @@ A monolithic service written using the go-zero framework.
 ## Disclaimer
 
 Completely FREE software for learning only. **Any inappropriate use is at your own risk.**
-
-## TODO
-
-添加授权逻辑。逻辑如下:
-
-常规登录模式：
-
-向`https://open.xiaofubao.com/routeauth/auth/route/ua/authorize/getCodeV2`发送请求后，获取响应头中的`location`进行重定向，重定向之后即可从响应中的`location`字段获取`openid`及`corpcode`，此后带上这两个参数向`https://api.pinbayun.com/api/v1/staff/auths/wx_auth/`发送请求即可
-
-新登录模式：
-
-向 `https://open.xiaofubao.com/routeauth/auth/route/ua/authorize/getCodeV2`发送请求后，若响应头`location`为空，则检查响应体（需验证响应体正常登录的时候是否为空或者为其他的东西），若响应体是一个页面（弹窗），则向从页面中获取 stateCode,并向`https://auth.xiaofubao.com/auth/route/authorize/agreementAuth?stateCode=&appid=2011112043190345310`发送请求。获取响应头中的`location`字段，继续按照正常登录流程即可。

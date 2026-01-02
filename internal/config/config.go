@@ -6,9 +6,7 @@ import (
 
 type Config struct {
 	rest.RestConf
-	EnableCron bool
-	CronTime   string
-	Mysql      struct {
+	Mysql struct {
 		Host   string
 		Port   int
 		User   string
@@ -21,16 +19,20 @@ type Config struct {
 		Pass string
 		DB   int
 	}
-	MiniProgram struct {
-		AppID        string
-		Secret       string
-		HttpDebug    bool
-		LogLevel     string
-		LogInfoFile  string
-		LogErrorFile string
-		LogStdout    bool
-		State        string
-		TemplateID   string
+	LowBattery struct {
+		MiniProgram struct {
+			AppID        string
+			Secret       string
+			HttpDebug    bool
+			LogLevel     string
+			LogInfoFile  string
+			LogErrorFile string
+			LogStdout    bool
+			State        string
+			TemplateID   string
+		}
+		EnableCron bool
+		CronTime   string
 	}
 	BusService struct {
 		UID                     string

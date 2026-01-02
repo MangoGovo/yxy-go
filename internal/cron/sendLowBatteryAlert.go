@@ -110,9 +110,9 @@ func (l *SendLowBatteryAlertLogic) processSubscription(subscription Subscription
 	}
 	mpResp, err := l.svcCtx.MiniProgram.SubscribeMessage.Send(l.ctx, &request.RequestSubscribeMessageSend{
 		ToUser:           subscription.OpenID,
-		TemplateID:       l.svcCtx.Config.MiniProgram.TemplateID,
+		TemplateID:       l.svcCtx.Config.LowBattery.MiniProgram.TemplateID,
 		Page:             "/pages/electricity/index",
-		MiniProgramState: l.svcCtx.Config.MiniProgram.State,
+		MiniProgramState: l.svcCtx.Config.LowBattery.MiniProgram.State,
 		Lang:             "zh_CN",
 		Data: &power.HashMap{
 			"character_string1": power.StringMap{ // 剩余电量

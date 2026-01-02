@@ -33,7 +33,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 }
 
 func NewGorm(c config.Config) *gorm.DB {
-	if !c.EnableCron {
+	if !c.LowBattery.EnableCron {
 		return nil
 	}
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", c.Mysql.User, c.Mysql.Pass, c.Mysql.Host, c.Mysql.Port, c.Mysql.DBName)
@@ -45,7 +45,7 @@ func NewGorm(c config.Config) *gorm.DB {
 }
 
 func NewRedis(c config.Config) *redis.Client {
-	if !c.EnableCron {
+	if !c.LowBattery.EnableCron {
 		return nil
 	}
 	return redis.NewClient(&redis.Options{
@@ -56,18 +56,19 @@ func NewRedis(c config.Config) *redis.Client {
 }
 
 func NewMiniProgram(c config.Config) *miniProgram.MiniProgram {
-	if !c.EnableCron {
+	if !c.LowBattery.EnableCron {
 		return nil
 	}
+	mp := c.LowBattery.MiniProgram
 	MiniProgramApp, err := miniProgram.NewMiniProgram(&miniProgram.UserConfig{
-		AppID:     c.MiniProgram.AppID,
-		Secret:    c.MiniProgram.Secret,
-		HttpDebug: c.MiniProgram.HttpDebug,
+		AppID:     mp.AppID,
+		Secret:    mp.Secret,
+		HttpDebug: mp.HttpDebug,
 		Log: miniProgram.Log{
-			Level:  c.MiniProgram.LogLevel,
-			File:   c.MiniProgram.LogInfoFile,
-			Error:  c.MiniProgram.LogErrorFile,
-			Stdout: c.MiniProgram.LogStdout,
+			Level:  mp.LogLevel,
+			File:   mp.LogInfoFile,
+			Error:  mp.LogErrorFile,
+			Stdout: mp.LogStdout,
 		},
 	})
 	if err != nil {
@@ -78,7 +79,7 @@ func NewMiniProgram(c config.Config) *miniProgram.MiniProgram {
 }
 
 func NewCron(c config.Config) *cron.Cron {
-	if !c.EnableCron {
+	if !c.LowBattery.EnableCron {
 		return nil
 	}
 	loc, _ := time.LoadLocation("Asia/Shanghai")
